@@ -6,7 +6,7 @@ import type { Notice } from "./types"
 
 type NoticeCardProps = {
   notice: Notice
-  onDelete: (id: number) => void
+  onDelete: (notice: Notice) => void
   onEdit: (notice: Notice) => void
 }
 
@@ -61,7 +61,7 @@ export function NoticeCard({ notice, onDelete, onEdit }: NoticeCardProps) {
 
           <button
             type="button"
-            onClick={() => onDelete(notice.id)}
+            onClick={() => onDelete(notice)}
             className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-rose-600 px-3 text-sm font-semibold text-white shadow-sm shadow-rose-900/20 transition hover:bg-rose-700"
           >
             <Trash2 className="size-4" aria-hidden="true" />

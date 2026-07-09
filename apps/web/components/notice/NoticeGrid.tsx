@@ -5,7 +5,7 @@ import type { Notice } from "./types"
 
 type NoticeGridProps = {
   notices: Notice[]
-  onDelete: (id: number) => void
+  onDelete: (notice: Notice) => void
   onEdit: (notice: Notice) => void
 }
 

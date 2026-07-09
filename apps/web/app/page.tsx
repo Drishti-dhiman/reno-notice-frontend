@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 
 import CreateNoticeModal from "@/components/CreateNoticeModal"
+import { DeleteNoticeDialog } from "@/components/notice/DeleteNoticeDialog"
 import { EmptyState } from "@/components/notice/EmptyState"
 import { LoadingState } from "@/components/notice/LoadingState"
 import { NoticeGrid } from "@/components/notice/NoticeGrid"
@@ -17,6 +18,8 @@ export default function Page() {
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
   const [editingNotice, setEditingNotice] = useState<Notice | null>(null)
+  const [noticeToDelete, setNoticeToDelete] = useState<Notice | null>(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
   const [toasts, setToasts] = useState<Toast[]>([])
 
   function showToast(title: string, tone: Toast["tone"] = "success") {
@@ -43,6 +46,15 @@ export default function Page() {
     setEditingNotice(null)
   }
 
+  function openDeleteDialog(notice: Notice) {
+    setNoticeToDelete(notice)
+  }
+
+  function closeDeleteDialog() {
+    if (deleteLoading) return
+    setNoticeToDelete(null)
+  }
+
   async function refreshNotices() {
     try {
       setLoading(true)
@@ -56,23 +68,25 @@ export default function Page() {
     }
   }
 
-  async function handleDelete(id: number) {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this notice?"
-    )
-
-    if (!confirmed) return
+  async function confirmDeleteNotice() {
+    if (!noticeToDelete) return
 
     try {
-      await apiFetch(`/${id}`, {
+      setDeleteLoading(true)
+      await apiFetch(`/${noticeToDelete.id}`, {
         method: "DELETE",
       })
 
-      setNotices((prev) => prev.filter((notice) => notice.id !== id))
+      setNotices((prev) =>
+        prev.filter((notice) => notice.id !== noticeToDelete.id)
+      )
+      setNoticeToDelete(null)
       showToast("Notice deleted")
     } catch (error) {
       console.error(error)
       showToast("Failed to delete notice", "error")
+    } finally {
+      setDeleteLoading(false)
     }
   }
 
@@ -117,7 +131,7 @@ export default function Page() {
             ) : (
               <NoticeGrid
                 notices={notices}
-                onDelete={handleDelete}
+                onDelete={openDeleteDialog}
                 onEdit={openUpdateModal}
               />
             )}
@@ -137,6 +151,13 @@ export default function Page() {
           onNotify={showToast}
         />
       )}
+
+      <DeleteNoticeDialog
+        notice={noticeToDelete}
+        loading={deleteLoading}
+        onCancel={closeDeleteDialog}
+        onConfirm={confirmDeleteNotice}
+      />
 
       <ToastViewport toasts={toasts} />
     </>
