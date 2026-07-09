@@ -117,9 +117,9 @@ export default function CreateNoticeModal({
       })
 
       setFormData(initialFormData)
+      onNotify(isEditing ? "Notice updated" : "Notice created")
       onSaved()
       onClose()
-      onNotify(isEditing ? "Notice updated" : "Notice created")
     } catch (error) {
       console.error(error)
       onNotify(`Failed to ${isEditing ? "update" : "create"} notice`, "error")
