@@ -3,17 +3,8 @@
 import { X } from "lucide-react"
 import { useState } from "react"
 
+import type { Notice } from "@/components/notice/types"
 import { apiFetch } from "@/lib/api"
-
-type Notice = {
-  id: number
-  title: string
-  body: string
-  category: "EXAM" | "EVENT" | "GENERAL"
-  priority: "NORMAL" | "URGENT"
-  publishDate: string
-  imageUrl?: string | null
-}
 
 type CreateNoticeModalProps = {
   open: boolean
