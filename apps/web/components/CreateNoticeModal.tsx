@@ -5,10 +5,22 @@ import { useState } from "react"
 
 import { apiFetch } from "@/lib/api"
 
+type Notice = {
+  id: number
+  title: string
+  body: string
+  category: "EXAM" | "EVENT" | "GENERAL"
+  priority: "NORMAL" | "URGENT"
+  publishDate: string
+  imageUrl?: string | null
+}
+
 type CreateNoticeModalProps = {
   open: boolean
   onClose: () => void
-  onCreated: () => void
+  onSaved: () => void
+  onNotify: (message: string, tone?: "success" | "error") => void
+  notice?: Notice | null
 }
 
 type NoticeFormData = {
@@ -29,13 +41,32 @@ const initialFormData: NoticeFormData = {
   imageUrl: "",
 }
 
+function getInitialFormData(notice?: Notice | null): NoticeFormData {
+  if (!notice) return initialFormData
+
+  return {
+    title: notice.title,
+    body: notice.body,
+    category: notice.category,
+    priority: notice.priority,
+    publishDate: notice.publishDate.slice(0, 10),
+    imageUrl: notice.imageUrl || "",
+  }
+}
+
 export default function CreateNoticeModal({
   open,
   onClose,
-  onCreated,
+  onSaved,
+  onNotify,
+  notice,
 }: CreateNoticeModalProps) {
-  const [formData, setFormData] = useState<NoticeFormData>(initialFormData)
+  const [formData, setFormData] = useState<NoticeFormData>(() =>
+    getInitialFormData(notice)
+  )
   const [loading, setLoading] = useState(false)
+
+  const isEditing = Boolean(notice)
 
   if (!open) return null
 
@@ -56,25 +87,25 @@ export default function CreateNoticeModal({
     event.preventDefault()
 
     if (!formData.title.trim()) {
-      alert("Title is required")
+      onNotify("Title is required", "error")
       return
     }
 
     if (!formData.body.trim()) {
-      alert("Body is required")
+      onNotify("Body is required", "error")
       return
     }
 
     if (!formData.publishDate) {
-      alert("Publish date is required")
+      onNotify("Publish date is required", "error")
       return
     }
 
     try {
       setLoading(true)
 
-      await apiFetch("/", {
-        method: "POST",
+      await apiFetch(isEditing ? `/${notice?.id}` : "/", {
+        method: isEditing ? "PUT" : "POST",
         body: JSON.stringify({
           title: formData.title,
           body: formData.body,
@@ -86,24 +117,27 @@ export default function CreateNoticeModal({
       })
 
       setFormData(initialFormData)
-      onCreated()
+      onSaved()
       onClose()
+      onNotify(isEditing ? "Notice updated" : "Notice created")
     } catch (error) {
       console.error(error)
-      alert("Failed to create notice")
+      onNotify(`Failed to ${isEditing ? "update" : "create"} notice`, "error")
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-      <div className="w-full max-w-2xl rounded-lg bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
+      <div className="max-h-[calc(100vh-3rem)] w-full max-w-xl overflow-hidden rounded-lg bg-white shadow-xl">
+        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
           <div>
-            <h2 className="text-xl font-bold text-slate-900">Create Notice</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Add a new notice to the board.
+            <h2 className="text-lg font-bold text-slate-900">
+              {isEditing ? "Update Notice" : "Create Notice"}
+            </h2>
+            <p className="mt-0.5 text-xs text-slate-500">
+              {isEditing ? "Edit notice details." : "Add a new notice."}
             </p>
           </div>
 
@@ -117,9 +151,12 @@ export default function CreateNoticeModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5 px-6 py-5">
+        <form
+          onSubmit={handleSubmit}
+          className="max-h-[calc(100vh-8rem)] space-y-3 overflow-y-auto px-4 py-4"
+        >
           <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-700">
+            <label className="mb-1.5 block text-sm font-semibold text-slate-700">
               Title
             </label>
             <input
@@ -127,12 +164,12 @@ export default function CreateNoticeModal({
               value={formData.title}
               onChange={handleChange}
               placeholder="Enter notice title"
-              className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm outline-none focus:border-teal-600"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-teal-600"
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-700">
+            <label className="mb-1.5 block text-sm font-semibold text-slate-700">
               Body
             </label>
             <textarea
@@ -140,21 +177,21 @@ export default function CreateNoticeModal({
               value={formData.body}
               onChange={handleChange}
               placeholder="Enter notice details"
-              rows={5}
-              className="w-full resize-none rounded-lg border border-slate-300 px-4 py-3 text-sm outline-none focus:border-teal-600"
+              rows={3}
+              className="w-full resize-none rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-teal-600"
             />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
+              <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                 Category
               </label>
               <select
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
-                className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm outline-none focus:border-teal-600"
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-teal-600"
               >
                 <option value="GENERAL">General</option>
                 <option value="EXAM">Exam</option>
@@ -163,14 +200,14 @@ export default function CreateNoticeModal({
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
+              <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                 Priority
               </label>
               <select
                 name="priority"
                 value={formData.priority}
                 onChange={handleChange}
-                className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm outline-none focus:border-teal-600"
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-teal-600"
               >
                 <option value="NORMAL">Normal</option>
                 <option value="URGENT">Urgent</option>
@@ -178,7 +215,7 @@ export default function CreateNoticeModal({
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
+              <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                 Publish Date
               </label>
               <input
@@ -186,13 +223,13 @@ export default function CreateNoticeModal({
                 name="publishDate"
                 value={formData.publishDate}
                 onChange={handleChange}
-                className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm outline-none focus:border-teal-600"
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-teal-600"
               />
             </div>
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-700">
+            <label className="mb-1.5 block text-sm font-semibold text-slate-700">
               Image URL Optional
             </label>
             <input
@@ -200,15 +237,15 @@ export default function CreateNoticeModal({
               value={formData.imageUrl}
               onChange={handleChange}
               placeholder="https://example.com/image.jpg"
-              className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm outline-none focus:border-teal-600"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-teal-600"
             />
           </div>
 
-          <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end">
+          <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-3 sm:flex-row sm:justify-end">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
             >
               Cancel
             </button>
@@ -216,9 +253,15 @@ export default function CreateNoticeModal({
             <button
               type="submit"
               disabled={loading}
-              className="rounded-lg bg-zinc-950 px-5 py-3 text-sm font-semibold text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-lg bg-zinc-950 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading ? "Creating..." : "Create Notice"}
+              {loading
+                ? isEditing
+                  ? "Updating..."
+                  : "Creating..."
+                : isEditing
+                  ? "Update Notice"
+                  : "Create Notice"}
             </button>
           </div>
         </form>

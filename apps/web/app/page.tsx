@@ -4,14 +4,15 @@ import {
   ArrowDown,
   Bell,
   CalendarDays,
+  CheckCircle2,
   GitBranch,
   Inbox,
   Loader2,
   Pencil,
   Plus,
   Trash2,
+  XCircle,
 } from "lucide-react"
-import Link from "next/link"
 import { useEffect, useState } from "react"
 
 import { apiFetch } from "@/lib/api"
@@ -25,6 +26,12 @@ type Notice = {
   priority: "NORMAL" | "URGENT"
   publishDate: string
   imageUrl?: string | null
+}
+
+type Toast = {
+  id: number
+  title: string
+  tone: "success" | "error"
 }
 
 const routeFlow = [
@@ -68,7 +75,33 @@ const routeFlow = [
 export default function Page() {
   const [notices, setNotices] = useState<Notice[]>([])
   const [loading, setLoading] = useState(true)
-  const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [editingNotice, setEditingNotice] = useState<Notice | null>(null)
+  const [toasts, setToasts] = useState<Toast[]>([])
+
+  function showToast(title: string, tone: Toast["tone"] = "success") {
+    const id = Date.now()
+    setToasts((current) => [...current, { id, title, tone }])
+
+    window.setTimeout(() => {
+      setToasts((current) => current.filter((toast) => toast.id !== id))
+    }, 3200)
+  }
+
+  function openCreateModal() {
+    setEditingNotice(null)
+    setModalOpen(true)
+  }
+
+  function openUpdateModal(notice: Notice) {
+    setEditingNotice(notice)
+    setModalOpen(true)
+  }
+
+  function closeModal() {
+    setModalOpen(false)
+    setEditingNotice(null)
+  }
 
   async function refreshNotices() {
     try {
@@ -77,7 +110,7 @@ export default function Page() {
       setNotices(data.data || [])
     } catch (error) {
       console.error(error)
-      alert("Failed to load notices")
+      showToast("Failed to load notices", "error")
     } finally {
       setLoading(false)
     }
@@ -96,9 +129,10 @@ export default function Page() {
       })
 
       setNotices((prev) => prev.filter((notice) => notice.id !== id))
+      showToast("Notice deleted")
     } catch (error) {
       console.error(error)
-      alert("Failed to delete notice")
+      showToast("Failed to delete notice", "error")
     }
   }
 
@@ -114,7 +148,7 @@ export default function Page() {
         }
       } catch (error) {
         console.error(error)
-        alert("Failed to load notices")
+        showToast("Failed to load notices", "error")
       } finally {
         if (active) {
           setLoading(false)
@@ -134,14 +168,18 @@ export default function Page() {
       <main className="min-h-screen bg-zinc-50 px-4 py-6 text-zinc-950 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
           <section className="space-y-6">
-            <PageHeader onCreate={() => setCreateModalOpen(true)} />
+            <PageHeader onCreate={openCreateModal} />
 
             {loading ? (
               <LoadingState />
             ) : notices.length === 0 ? (
-              <EmptyState onCreate={() => setCreateModalOpen(true)} />
+              <EmptyState onCreate={openCreateModal} />
             ) : (
-              <NoticeGrid notices={notices} onDelete={handleDelete} />
+              <NoticeGrid
+                notices={notices}
+                onDelete={handleDelete}
+                onEdit={openUpdateModal}
+              />
             )}
           </section>
 
@@ -149,11 +187,18 @@ export default function Page() {
         </div>
       </main>
 
-      <CreateNoticeModal
-        open={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-        onCreated={refreshNotices}
-      />
+      {modalOpen && (
+        <CreateNoticeModal
+          key={editingNotice ? `edit-${editingNotice.id}` : "create"}
+          open={modalOpen}
+          notice={editingNotice}
+          onClose={closeModal}
+          onSaved={refreshNotices}
+          onNotify={showToast}
+        />
+      )}
+
+      <ToastViewport toasts={toasts} />
     </>
   )
 }
@@ -269,14 +314,21 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
 function NoticeGrid({
   notices,
   onDelete,
+  onEdit,
 }: {
   notices: Notice[]
   onDelete: (id: number) => void
+  onEdit: (notice: Notice) => void
 }) {
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {notices.map((notice) => (
-        <NoticeCard key={notice.id} notice={notice} onDelete={onDelete} />
+        <NoticeCard
+          key={notice.id}
+          notice={notice}
+          onDelete={onDelete}
+          onEdit={onEdit}
+        />
       ))}
     </div>
   )
@@ -285,9 +337,11 @@ function NoticeGrid({
 function NoticeCard({
   notice,
   onDelete,
+  onEdit,
 }: {
   notice: Notice
   onDelete: (id: number) => void
+  onEdit: (notice: Notice) => void
 }) {
   const publishDate = new Date(notice.publishDate).toLocaleDateString("en-IN")
 
@@ -319,13 +373,14 @@ function NoticeCard({
       </div>
 
       <div className="mt-5 grid grid-cols-2 gap-2 border-t border-zinc-100 pt-4">
-        <Link
-          href={`/notices/${notice.id}/edit`}
+        <button
+          type="button"
+          onClick={() => onEdit(notice)}
           className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-zinc-300 px-3 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50"
         >
           <Pencil className="size-4" aria-hidden="true" />
           Edit
-        </Link>
+        </button>
 
         <button
           type="button"
@@ -337,5 +392,36 @@ function NoticeCard({
         </button>
       </div>
     </article>
+  )
+}
+
+function ToastViewport({ toasts }: { toasts: Toast[] }) {
+  return (
+    <div className="fixed top-4 right-4 z-[60] flex w-[min(360px,calc(100vw-2rem))] flex-col gap-2">
+      {toasts.map((toast) => {
+        const isSuccess = toast.tone === "success"
+
+        return (
+          <div
+            key={toast.id}
+            className="flex items-start gap-3 rounded-lg border border-zinc-200 bg-white p-3 text-sm text-zinc-800 shadow-lg"
+            role="status"
+          >
+            {isSuccess ? (
+              <CheckCircle2
+                className="mt-0.5 size-5 shrink-0 text-emerald-600"
+                aria-hidden="true"
+              />
+            ) : (
+              <XCircle
+                className="mt-0.5 size-5 shrink-0 text-rose-600"
+                aria-hidden="true"
+              />
+            )}
+            <span className="font-medium">{toast.title}</span>
+          </div>
+        )
+      })}
+    </div>
   )
 }
