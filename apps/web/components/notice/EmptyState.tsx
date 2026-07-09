@@ -8,18 +8,21 @@ type EmptyStateProps = {
 
 export function EmptyState({ onCreate }: EmptyStateProps) {
   return (
-    <div className="flex min-h-72 flex-col items-center justify-center rounded-lg border border-dashed border-zinc-300 bg-white p-8 text-center shadow-sm">
-      <div className="flex size-12 items-center justify-center rounded-lg bg-zinc-100 text-zinc-500">
+    <div className="flex min-h-72 flex-col items-center justify-center rounded-xl border border-dashed border-teal-200 bg-white/90 p-8 text-center shadow-sm shadow-zinc-200/70">
+      <div className="flex size-14 items-center justify-center rounded-xl bg-teal-50 text-teal-700 ring-1 ring-teal-100">
         <Inbox className="size-6" aria-hidden="true" />
       </div>
-      <h2 className="mt-4 text-lg font-semibold text-zinc-950">
+      <h2 className="mt-4 text-xl font-semibold text-zinc-950">
         No notices found
       </h2>
-      <p className="mt-2 text-sm text-zinc-600">Create your first notice.</p>
+      <p className="mt-2 max-w-sm text-sm leading-6 text-zinc-600">
+        Start with a clean announcement and it will appear here as a polished
+        notice card.
+      </p>
       <button
         type="button"
         onClick={onCreate}
-        className="mt-5 inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-zinc-950 px-4 text-sm font-semibold text-white transition hover:bg-zinc-800"
+        className="mt-5 inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-teal-700 px-4 text-sm font-semibold text-white shadow-sm shadow-teal-900/20 transition hover:bg-teal-800"
       >
         <Plus className="size-4" aria-hidden="true" />
         Create Notice

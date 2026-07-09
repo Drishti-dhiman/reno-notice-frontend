@@ -105,7 +105,7 @@ export default function Page() {
 
   return (
     <>
-      <main className="min-h-screen bg-zinc-50 px-4 py-6 text-zinc-950 sm:px-6 lg:px-8">
+      <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#f4f8f7_38%,#f7f7f4_100%)] px-4 py-6 text-zinc-950 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
           <section className="space-y-6">
             <PageHeader onCreate={openCreateModal} />

@@ -11,11 +11,14 @@ export function ToastViewport({ toasts }: ToastViewportProps) {
     <div className="fixed top-4 right-4 z-[60] flex w-[min(360px,calc(100vw-2rem))] flex-col gap-2">
       {toasts.map((toast) => {
         const isSuccess = toast.tone === "success"
+        const toneClass = isSuccess
+          ? "border-l-emerald-500"
+          : "border-l-rose-500"
 
         return (
           <div
             key={toast.id}
-            className="flex items-start gap-3 rounded-lg border border-zinc-200 bg-white p-3 text-sm text-zinc-800 shadow-lg"
+            className={`flex items-start gap-3 rounded-lg border border-l-4 border-zinc-200 bg-white p-3 text-sm text-zinc-800 shadow-lg shadow-zinc-900/10 ${toneClass}`}
             role="status"
           >
             {isSuccess ? (

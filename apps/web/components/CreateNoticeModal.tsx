@@ -120,9 +120,9 @@ export default function CreateNoticeModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
-      <div className="max-h-[calc(100vh-3rem)] w-full max-w-xl overflow-hidden rounded-lg bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/55 px-4 py-6 backdrop-blur-sm">
+      <div className="max-h-[calc(100vh-3rem)] w-full max-w-xl overflow-hidden rounded-xl border border-white/80 bg-white shadow-2xl shadow-zinc-950/20">
+        <div className="flex items-center justify-between border-b border-slate-200 bg-zinc-50 px-4 py-3">
           <div>
             <h2 className="text-lg font-bold text-slate-900">
               {isEditing ? "Update Notice" : "Create Notice"}
@@ -136,7 +136,7 @@ export default function CreateNoticeModal({
             type="button"
             onClick={onClose}
             aria-label="Close create notice modal"
-            className="flex size-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"
+            className="flex size-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-white hover:text-slate-900"
           >
             <X className="size-5" aria-hidden="true" />
           </button>
@@ -155,7 +155,7 @@ export default function CreateNoticeModal({
               value={formData.title}
               onChange={handleChange}
               placeholder="Enter notice title"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-teal-600"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm transition outline-none focus:border-teal-600 focus:ring-4 focus:ring-teal-100"
             />
           </div>
 
@@ -169,7 +169,7 @@ export default function CreateNoticeModal({
               onChange={handleChange}
               placeholder="Enter notice details"
               rows={3}
-              className="w-full resize-none rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-teal-600"
+              className="w-full resize-none rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm transition outline-none focus:border-teal-600 focus:ring-4 focus:ring-teal-100"
             />
           </div>
 
@@ -182,7 +182,7 @@ export default function CreateNoticeModal({
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-teal-600"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm transition outline-none focus:border-teal-600 focus:ring-4 focus:ring-teal-100"
               >
                 <option value="GENERAL">General</option>
                 <option value="EXAM">Exam</option>
@@ -198,7 +198,7 @@ export default function CreateNoticeModal({
                 name="priority"
                 value={formData.priority}
                 onChange={handleChange}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-teal-600"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm transition outline-none focus:border-teal-600 focus:ring-4 focus:ring-teal-100"
               >
                 <option value="NORMAL">Normal</option>
                 <option value="URGENT">Urgent</option>
@@ -214,7 +214,7 @@ export default function CreateNoticeModal({
                 name="publishDate"
                 value={formData.publishDate}
                 onChange={handleChange}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-teal-600"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm transition outline-none focus:border-teal-600 focus:ring-4 focus:ring-teal-100"
               />
             </div>
           </div>
@@ -228,7 +228,7 @@ export default function CreateNoticeModal({
               value={formData.imageUrl}
               onChange={handleChange}
               placeholder="https://example.com/image.jpg"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-teal-600"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm transition outline-none focus:border-teal-600 focus:ring-4 focus:ring-teal-100"
             />
           </div>
 
@@ -236,7 +236,7 @@ export default function CreateNoticeModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
             >
               Cancel
             </button>
@@ -244,7 +244,7 @@ export default function CreateNoticeModal({
             <button
               type="submit"
               disabled={loading}
-              className="rounded-lg bg-zinc-950 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-teal-900/20 transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading
                 ? isEditing
