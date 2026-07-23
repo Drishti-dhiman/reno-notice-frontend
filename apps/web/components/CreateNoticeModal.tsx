@@ -95,7 +95,7 @@ export default function CreateNoticeModal({
     try {
       setLoading(true)
 
-      await apiFetch(isEditing ? `/${notice?.id}` : "/", {
+      await apiFetch(isEditing ? `/notices/${notice?.id}` : "/notices", {
         method: isEditing ? "PUT" : "POST",
         body: JSON.stringify({
           title: formData.title,
@@ -121,7 +121,7 @@ export default function CreateNoticeModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/55 px-4 py-6 backdrop-blur-sm">
-      <div className="max-h-[calc(100vh-3rem)] w-full max-w-xl overflow-hidden rounded-xl border border-white/80 bg-white shadow-2xl shadow-zinc-950/20">
+      <div className="max-h-[calc(100vh-3rem)] w-full max-w-xl overflow-hidden rounded-xl border border-white/80 bg-white text-black shadow-2xl shadow-zinc-950/20">
         <div className="flex items-center justify-between border-b border-slate-200 bg-zinc-50 px-4 py-3">
           <div>
             <h2 className="text-lg font-bold text-slate-900">

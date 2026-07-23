@@ -1,20 +1,30 @@
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5500/notices";
+const API_PREFIX = "/api"
 
-export async function apiFetch(path: string, options?: RequestInit) {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(options?.headers || {}),
-    },
-    ...options,
-  });
+export async function apiFetch<T = unknown>(
+  path: string,
+  options?: RequestInit
+): Promise<T> {
+ const url = `${API_PREFIX}/${path.replace(/^\/+/, "")}`;
 
-  const data = await response.json().catch(() => null);
+console.log("Request URL:", url);
 
-  if (!response.ok) {
-    throw new Error(data?.message || "Something went wrong");
-  }
+const response = await fetch(url, {
+  ...options,
+  headers: {
+    "Content-Type": "application/json",
+    ...options?.headers,
+  },
+});
 
-  return data;
+console.log("Status:", response.status);
+
+const data = await response.json().catch(() => null);
+
+console.log("Response:", data);
+
+if (!response.ok) {
+  throw new Error(data?.message || "API request failed");
+}
+
+  return data
 }

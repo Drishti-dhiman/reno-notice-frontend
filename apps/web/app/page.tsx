@@ -58,7 +58,7 @@ export default function Page() {
   async function refreshNotices() {
     try {
       setLoading(true)
-      const data = await apiFetch("/")
+      const data = await apiFetch<{ data: Notice[] }>("/notices")
       setNotices(data.data || [])
     } catch (error) {
       console.error(error)
@@ -73,7 +73,7 @@ export default function Page() {
 
     try {
       setDeleteLoading(true)
-      await apiFetch(`/${noticeToDelete.id}`, {
+      await apiFetch(`/notices/${noticeToDelete.id}`, {
         method: "DELETE",
       })
 
@@ -95,7 +95,7 @@ export default function Page() {
 
     async function loadInitialNotices() {
       try {
-        const data = await apiFetch("/")
+        const data = await apiFetch<{ data: Notice[] }>("/notices")
 
         if (active) {
           setNotices(data.data || [])
@@ -119,7 +119,7 @@ export default function Page() {
 
   return (
     <>
-      <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#f4f8f7_38%,#f7f7f4_100%)] px-4 py-6 text-zinc-950 sm:px-6 lg:px-8">
+      <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#f4f8f7_38%,#f7f7f4_100%)] px-4 py-6 text-black sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
           <section className="space-y-6">
             <PageHeader onCreate={openCreateModal} />
