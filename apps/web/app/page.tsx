@@ -1,165 +1,31 @@
 "use client"
-
-import { useEffect, useState } from "react"
-
-import CreateNoticeModal from "@/components/CreateNoticeModal"
-import { DeleteNoticeDialog } from "@/components/notice/DeleteNoticeDialog"
-import { EmptyState } from "@/components/notice/EmptyState"
-import { LoadingState } from "@/components/notice/LoadingState"
-import { NoticeGrid } from "@/components/notice/NoticeGrid"
-import { PageHeader } from "@/components/notice/PageHeader"
-import { RouteFlow } from "@/components/notice/RouteFlow"
-import { ToastViewport } from "@/components/notice/ToastViewport"
-import type { Notice, Toast } from "@/components/notice/types"
+import { useEffect, useMemo, useState } from "react"
+import { Activity, ArrowUpRight, Bell, CalendarDays, ChevronRight, CircleDollarSign, Clock3, Dumbbell, LayoutDashboard, LogOut, Menu, Search, Settings, TrendingUp, UserRoundPlus, Users, WalletCards, X } from "lucide-react"
 import { apiFetch } from "@/lib/api"
 
-export default function Page() {
-  const [notices, setNotices] = useState<Notice[]>([])
-  const [loading, setLoading] = useState(true)
-  const [modalOpen, setModalOpen] = useState(false)
-  const [editingNotice, setEditingNotice] = useState<Notice | null>(null)
-  const [noticeToDelete, setNoticeToDelete] = useState<Notice | null>(null)
-  const [deleteLoading, setDeleteLoading] = useState(false)
-  const [toasts, setToasts] = useState<Toast[]>([])
-
-  function showToast(title: string, tone: Toast["tone"] = "success") {
-    const id = Date.now()
-    setToasts((current) => [...current, { id, title, tone }])
-
-    window.setTimeout(() => {
-      setToasts((current) => current.filter((toast) => toast.id !== id))
-    }, 3200)
-  }
-
-  function openCreateModal() {
-    setEditingNotice(null)
-    setModalOpen(true)
-  }
-
-  function openUpdateModal(notice: Notice) {
-    setEditingNotice(notice)
-    setModalOpen(true)
-  }
-
-  function closeModal() {
-    setModalOpen(false)
-    setEditingNotice(null)
-  }
-
-  function openDeleteDialog(notice: Notice) {
-    setNoticeToDelete(notice)
-  }
-
-  function closeDeleteDialog() {
-    if (deleteLoading) return
-    setNoticeToDelete(null)
-  }
-
-  async function refreshNotices() {
-    try {
-      setLoading(true)
-      const data = await apiFetch<{ data: Notice[] }>("/notices")
-      setNotices(data.data || [])
-    } catch (error) {
-      console.error(error)
-      showToast("Failed to load notices", "error")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function confirmDeleteNotice() {
-    if (!noticeToDelete) return
-
-    try {
-      setDeleteLoading(true)
-      await apiFetch(`/notices/${noticeToDelete.id}`, {
-        method: "DELETE",
-      })
-
-      setNotices((prev) =>
-        prev.filter((notice) => notice.id !== noticeToDelete.id)
-      )
-      setNoticeToDelete(null)
-      showToast("Notice deleted")
-    } catch (error) {
-      console.error(error)
-      showToast("Failed to delete notice", "error")
-    } finally {
-      setDeleteLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    let active = true
-
-    async function loadInitialNotices() {
-      try {
-        const data = await apiFetch<{ data: Notice[] }>("/notices")
-
-        if (active) {
-          setNotices(data.data || [])
-        }
-      } catch (error) {
-        console.error(error)
-        showToast("Failed to load notices", "error")
-      } finally {
-        if (active) {
-          setLoading(false)
-        }
-      }
-    }
-
-    void loadInitialNotices()
-
-    return () => {
-      active = false
-    }
-  }, [])
-
-  return (
-    <>
-      <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#f4f8f7_38%,#f7f7f4_100%)] px-4 py-6 text-black sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-          <section className="space-y-6">
-            <PageHeader onCreate={openCreateModal} />
-
-            {loading ? (
-              <LoadingState />
-            ) : notices.length === 0 ? (
-              <EmptyState onCreate={openCreateModal} />
-            ) : (
-              <NoticeGrid
-                notices={notices}
-                onDelete={openDeleteDialog}
-                onEdit={openUpdateModal}
-              />
-            )}
-          </section>
-
-          <RouteFlow />
-        </div>
-      </main>
-
-      {modalOpen && (
-        <CreateNoticeModal
-          key={editingNotice ? `edit-${editingNotice.id}` : "create"}
-          open={modalOpen}
-          notice={editingNotice}
-          onClose={closeModal}
-          onSaved={refreshNotices}
-          onNotify={showToast}
-        />
-      )}
-
-      <DeleteNoticeDialog
-        notice={noticeToDelete}
-        loading={deleteLoading}
-        onCancel={closeDeleteDialog}
-        onConfirm={confirmDeleteNotice}
-      />
-
-      <ToastViewport toasts={toasts} />
-    </>
-  )
+type Dashboard={totalClients:number;activeMembers:number;todayAttendance:number;todayRevenue:number|string}
+type Member={id:number;user:{name:string;email:string;status:string};phone?:string;memberships:{status:string;endDate:string;plan:{name:string}}[]}
+const demos:Member[]=[
+{id:1,user:{name:"Aarav Mehta",email:"aarav@example.com",status:"ACTIVE"},memberships:[{status:"ACTIVE",endDate:"2026-08-18",plan:{name:"Gold Annual"}}]},
+{id:2,user:{name:"Meera Kapoor",email:"meera@example.com",status:"ACTIVE"},memberships:[{status:"ACTIVE",endDate:"2026-07-29",plan:{name:"Quarterly Pro"}}]},
+{id:3,user:{name:"Rohan Singh",email:"rohan@example.com",status:"ACTIVE"},memberships:[{status:"PENDING",endDate:"2026-07-25",plan:{name:"Monthly Flex"}}]},
+{id:4,user:{name:"Sana Khan",email:"sana@example.com",status:"ACTIVE"},memberships:[{status:"ACTIVE",endDate:"2027-01-12",plan:{name:"Platinum"}}]}]
+const bars=[35,52,46,72,61,86,74,93,68,78,96,82]
+export default function Page(){
+ const [menu,setMenu]=useState(false),[search,setSearch]=useState(""),[members,setMembers]=useState<Member[]>(demos),[live,setLive]=useState(false),[loginOpen,setLoginOpen]=useState(false),[loading,setLoading]=useState(false),[error,setError]=useState("")
+ const [dashboard,setDashboard]=useState<Dashboard>({totalClients:248,activeMembers:214,todayAttendance:86,todayRevenue:18450})
+ async function load(){try{const[d,m]=await Promise.all([apiFetch<{data:Dashboard}>("/dashboard"),apiFetch<{data:Member[]}>("/clients")]);setDashboard(d.data);setMembers(m.data);setLive(true)}catch{setLive(false)}}
+ useEffect(()=>{if(localStorage.getItem("gym_access_token"))queueMicrotask(()=>void load())},[])
+ async function login(e:React.FormEvent<HTMLFormElement>){e.preventDefault();setLoading(true);setError("");const f=new FormData(e.currentTarget);try{const r=await apiFetch<{data:{accessToken:string;refreshToken:string}}>("/auth/login",{method:"POST",body:JSON.stringify({email:f.get("email"),password:f.get("password")})});localStorage.setItem("gym_access_token",r.data.accessToken);localStorage.setItem("gym_refresh_token",r.data.refreshToken);setLoginOpen(false);await load()}catch(x){setError(x instanceof Error?x.message:"Login failed")}finally{setLoading(false)}}
+ const filtered=useMemo(()=>members.filter(m=>(m.user.name+m.user.email).toLowerCase().includes(search.toLowerCase())),[members,search])
+ return <main className="min-h-screen bg-[#f2f0e9] text-[#161713]"><div className="flex min-h-screen"><Sidebar open={menu} close={()=>setMenu(false)}/><section className="min-w-0 flex-1 lg:pl-[248px]">
+ <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-black/8 bg-[#f2f0e9]/90 px-5 backdrop-blur-xl md:px-8"><div className="flex items-center gap-3"><button onClick={()=>setMenu(true)} className="rounded-xl border border-black/10 bg-white p-2.5 lg:hidden"><Menu size={20}/></button><div><p className="text-[10px] font-bold uppercase tracking-[.22em] text-black/40">Thursday, 23 July</p><h1 className="text-xl font-black tracking-tight md:text-2xl">Good morning, Arjun.</h1></div></div><div className="flex items-center gap-2"><span className={`hidden rounded-full px-3 py-1.5 text-[10px] font-black sm:block ${live?"bg-[#d8ff4f]":"bg-black/6 text-black/45"}`}>{live?"LIVE DATA":"DEMO MODE"}</span><button className="relative rounded-full border border-black/10 bg-white p-2.5"><Bell size={18}/><i className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#e65332]"/></button><button onClick={()=>setLoginOpen(true)} className="ml-1 flex items-center gap-2 rounded-full bg-[#171813] py-2 pl-2 pr-4 text-sm font-bold text-white"><span className="grid h-8 w-8 place-items-center rounded-full bg-[#d8ff4f] text-xs text-black">AK</span><span className="hidden sm:inline">{live?"Admin":"Connect"}</span></button></div></header>
+ <div className="mx-auto max-w-[1500px] space-y-7 p-5 md:p-8"><section className="flex flex-col justify-between gap-4 md:flex-row md:items-end"><div><p className="mb-2 text-xs font-bold uppercase tracking-[.2em] text-[#6d705f]">Command center</p><h2 className="text-4xl font-black leading-[.95] tracking-[-.045em] md:text-5xl">Your gym, at a glance.</h2></div><button className="flex items-center justify-center gap-2 rounded-xl bg-[#d8ff4f] px-5 py-3 text-sm font-black shadow-[0_5px_0_#161713]"><UserRoundPlus size={18}/> Add new member</button></section>
+ <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"><Stat icon={Users} label="Total members" value={dashboard.totalClients} note="+12 this month"/><Stat icon={Activity} label="Active members" value={dashboard.activeMembers} note={`${Math.round(dashboard.activeMembers/Math.max(dashboard.totalClients,1)*100)}% retention`} dark/><Stat icon={Clock3} label="Today's check-ins" value={dashboard.todayAttendance} note="Peak at 7:00 PM"/><Stat icon={CircleDollarSign} label="Today's revenue" value={`â‚¹${Number(dashboard.todayRevenue).toLocaleString("en-IN")}`} note="+8.4% vs yesterday"/></section>
+ <section className="grid gap-4 xl:grid-cols-[1.5fr_.75fr]"><article className="overflow-hidden rounded-[28px] bg-[#191a16] p-6 text-white md:p-8"><div className="flex justify-between"><div><p className="text-xs font-bold uppercase tracking-[.2em] text-white/45">Revenue performance</p><p className="mt-3 text-3xl font-black">â‚¹3,84,200 <span className="text-sm text-[#d8ff4f]">+14.2%</span></p></div><button className="h-fit rounded-xl border border-white/12 px-3 py-2 text-xs font-bold">Last 12 months</button></div><div className="mt-8 flex h-52 items-end gap-2 md:gap-4">{bars.map((b,i)=><div key={i} className="flex flex-1 flex-col items-center gap-3"><div style={{height:`${b}%`}} className={`w-full rounded-t-md ${i===10?"bg-[#d8ff4f]":"bg-white/14"}`}/><span className="text-[9px] font-bold text-white/35">{["A","S","O","N","D","J","F","M","A","M","J","J"][i]}</span></div>)}</div></article><article className="relative overflow-hidden rounded-[28px] bg-[#d8ff4f] p-7"><Dumbbell className="absolute -bottom-5 -right-5 rotate-[-20deg] text-black/8" size={170}/><p className="text-xs font-bold uppercase tracking-[.2em] text-black/45">Attendance goal</p><p className="mt-5 text-6xl font-black tracking-[-.06em]">86%</p><p className="mt-2 max-w-[230px] text-sm font-semibold leading-relaxed text-black/60">You are 7 check-ins away from today&apos;s target.</p><div className="mt-8 h-2 rounded-full bg-black/15"><div className="h-full w-[86%] rounded-full bg-black"/></div><button className="relative mt-8 flex items-center gap-2 text-sm font-black">View attendance <ArrowUpRight size={17}/></button></article></section>
+ <section className="grid gap-4 xl:grid-cols-[1.5fr_.75fr]"><article className="rounded-[28px] border border-black/8 bg-[#faf9f5] p-5 md:p-7"><div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"><div><h3 className="text-xl font-black">Recent members</h3><p className="text-sm text-black/45">Manage your newest community members.</p></div><label className="flex items-center gap-2 rounded-xl border border-black/10 bg-white px-3 py-2.5"><Search size={16}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search member" className="w-40 bg-transparent text-sm outline-none"/></label></div><div className="mt-5 overflow-x-auto"><table className="w-full min-w-[650px] text-left"><thead><tr className="border-b border-black/8 text-[10px] uppercase tracking-[.16em] text-black/40"><th className="pb-3">Member</th><th className="pb-3">Plan</th><th className="pb-3">Expires</th><th className="pb-3">Status</th><th/></tr></thead><tbody>{filtered.slice(0,5).map((m,i)=>{const x=m.memberships[0];return <tr key={m.id} className="border-b border-black/6 last:border-0"><td className="py-4"><div className="flex items-center gap-3"><span className={`grid h-10 w-10 place-items-center rounded-full text-xs font-black ${["bg-[#ffd6c9]","bg-[#d7e5ff]","bg-[#e5dcff]","bg-[#d8ff4f]"][i%4]}`}>{m.user.name.split(" ").map(n=>n[0]).join("").slice(0,2)}</span><div><p className="text-sm font-bold">{m.user.name}</p><p className="text-xs text-black/40">{m.user.email}</p></div></div></td><td className="py-4 text-sm font-semibold">{x?.plan.name??"No plan"}</td><td className="py-4 text-sm text-black/55">{x?new Date(x.endDate).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"}):"â€”"}</td><td><span className={`rounded-full px-2.5 py-1 text-[10px] font-black ${x?.status==="ACTIVE"?"bg-[#dff5cc] text-[#376321]":"bg-[#ffe4c2] text-[#85510b]"}`}>{x?.status??"INACTIVE"}</span></td><td><ChevronRight size={17}/></td></tr>})}</tbody></table></div></article>
+ <article className="rounded-[28px] border border-black/8 bg-[#faf9f5] p-6"><div className="flex items-center justify-between"><div><h3 className="text-xl font-black">Expiring soon</h3><p className="text-sm text-black/45">Next 7 days</p></div><span className="grid h-9 w-9 place-items-center rounded-full bg-[#ffe0d7] text-[#b53d20]">3</span></div><div className="mt-5 space-y-3">{demos.slice(1,4).map((m,i)=><div key={m.id} className="flex items-center gap-3 rounded-2xl border border-black/7 bg-white p-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-[#f0eee7] text-xs font-black">{m.user.name.split(" ").map(n=>n[0]).join("").slice(0,2)}</span><div className="min-w-0 flex-1"><p className="truncate text-sm font-bold">{m.user.name}</p><p className="text-xs text-black/40">{i+2} days remaining</p></div><button className="rounded-lg bg-black px-2.5 py-1.5 text-[10px] font-bold text-white">Remind</button></div>)}</div><button className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl border border-black/10 py-3 text-xs font-black">View memberships <ArrowUpRight size={15}/></button></article></section></div></section></div>
+ {loginOpen&&<div className="fixed inset-0 z-[60] grid place-items-center bg-black/55 p-4 backdrop-blur-sm"><div className="w-full max-w-md rounded-[28px] bg-[#faf9f5] p-7"><div className="flex justify-between"><div><p className="text-xs font-black uppercase tracking-[.2em] text-black/40">Admin access</p><h3 className="mt-2 text-3xl font-black">Connect your gym.</h3></div><button onClick={()=>setLoginOpen(false)}><X/></button></div><form onSubmit={login} className="mt-7 space-y-4"><label className="block text-xs font-bold">Email<input name="email" type="email" required className="mt-2 w-full rounded-xl border bg-white px-4 py-3 text-sm"/></label><label className="block text-xs font-bold">Password<input name="password" type="password" minLength={8} required className="mt-2 w-full rounded-xl border bg-white px-4 py-3 text-sm"/></label>{error&&<p className="rounded-xl bg-red-50 p-3 text-xs text-red-700">{error}</p>}<button disabled={loading} className="w-full rounded-xl bg-[#d8ff4f] py-3.5 text-sm font-black shadow-[0_4px_0_#161713]">{loading?"Connectingâ€¦":"Login & load live data"}</button></form></div></div>}</main>
 }
+function Sidebar({open,close}:{open:boolean;close:()=>void}){const nav=[{i:LayoutDashboard,l:"Overview"},{i:Users,l:"Members"},{i:WalletCards,l:"Memberships"},{i:CalendarDays,l:"Attendance"},{i:Dumbbell,l:"Workouts"},{i:TrendingUp,l:"Progress"}];return <><button onClick={close} className={`fixed inset-0 z-40 bg-black/40 lg:hidden ${open?"block":"hidden"}`}/><aside className={`fixed inset-y-0 left-0 z-50 flex w-[248px] flex-col bg-[#191a16] p-5 text-white transition-transform lg:translate-x-0 ${open?"translate-x-0":"-translate-x-full"}`}><div className="flex items-center justify-between"><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-[#d8ff4f] text-black"><Dumbbell size={21}/></span><div><p className="text-lg font-black">PULSE</p><p className="text-[9px] font-bold tracking-[.22em] text-white/35">GYM OS</p></div></div><button onClick={close} className="lg:hidden"><X/></button></div><nav className="mt-10 space-y-1">{nav.map(({i:I,l},n)=><button key={l} className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold ${n===0?"bg-[#d8ff4f] text-black":"text-white/55 hover:bg-white/6"}`}><I size={18}/>{l}</button>)}</nav><div className="mt-auto"><div className="mb-5 rounded-2xl border border-white/8 bg-white/5 p-4"><p className="text-xs font-bold text-[#d8ff4f]">PRO PLAN</p><p className="mt-1 text-xs text-white/45">214 of 300 member slots used.</p><div className="mt-3 h-1.5 rounded-full bg-white/10"><div className="h-full w-[71%] rounded-full bg-[#d8ff4f]"/></div></div><button className="flex gap-3 px-3 py-2 text-sm font-bold text-white/50"><Settings size={18}/>Settings</button><button className="flex gap-3 px-3 py-2 text-sm font-bold text-white/50"><LogOut size={18}/>Sign out</button></div></aside></>}
+function Stat({icon:I,label,value,note,dark=false}:{icon:typeof Users;label:string;value:string|number;note:string;dark?:boolean}){return <article className={`rounded-[24px] border p-5 ${dark?"border-black bg-[#191a16] text-white":"border-black/8 bg-[#faf9f5]"}`}><div className="flex justify-between"><span className={`grid h-10 w-10 place-items-center rounded-xl ${dark?"bg-[#d8ff4f] text-black":"bg-[#e7e5dd]"}`}><I size={19}/></span><ArrowUpRight size={18} className="opacity-25"/></div><p className="mt-5 text-xs font-bold uppercase tracking-[.14em] opacity-40">{label}</p><p className="mt-1 text-3xl font-black">{value}</p><p className={`mt-2 text-xs font-semibold ${dark?"text-[#d8ff4f]":"text-[#6b704f]"}`}>{note}</p></article>}
